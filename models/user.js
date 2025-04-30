@@ -3,51 +3,92 @@ import path from 'path';
 
 const userFilePath = path.join(process.cwd(), 'data', 'user.json');
 
-// Helper function to handle reading from the file
-function readUsersFile() {
-    try {
+// Helper to read all users
+
+function readUsersFile(){
+    try{
         const data = fs.readFileSync(userFilePath, 'utf-8');
-        // Ensure we return an empty array if the file is empty or doesn't contain valid JSON
-        return data ? JSON.parse(data) : [];
-    } catch (error) {
-        console.error("Error reading the users file:", error);
-        return [];  // Return an empty array if an error occurs
+
+        // If the file has something inside, convert if from text to an array/object 
+
+        if(data){
+            return JSON.parse(data);
+        }else{
+            // If File is empty just return an empty array
+            return [];
+        }
+
+    }catch(error){
+        console.error('Could not read users file', error);
+
+        return [];
     }
 }
 
-// Helper function to write to the file
-function writeUsersFile(users) {
-    try {
-        fs.writeFileSync(userFilePath, JSON.stringify(users, null, 2));
-    } catch (error) {
-        console.error("Error writing to the users file:", error);
-    }
-}
-
-class User {
-    constructor(name, email, password) {
-        this.name = name;
+class User{
+    constructor(name, email, password){
+        this.name = name ;
         this.email = email;
         this.password = password;
     }
 
-    // Static method to get all users from the file
-    static allUsers() {
+    // Read all users
+    static allUsers(){
         return readUsersFile();
     }
 
-    // Static method to find a user by email
+    // Write all users back to file 
+    static saveAll(users){
+        try{
+            fs.writeFileSync(userFilePath, JSON.stringify(users, null, 2));
+
+        }catch(error){
+            console.error('Error Writing users file', error);
+        }
+    }
+
+    //Static(insert) the current instance to user.json
+    save(){
+        console.log('test')
+        const users = User.allUsers();
+        users.push(this);
+        User.saveAll(users)
+        console.log('test')
+    }
+
     static findByEmail(email) {
         const users = User.allUsers();
         return users.find(user => user.email === email);
     }
 
-    // Method to save the current user to the file
-    save() {
-        const users = User.allUsers();
-        users.push(this);
-        writeUsersFile(users);
+    // Check paswoedk
+
+    static checkPassword(email, password){
+        const user = user.findByEmail(email);
+        if(!user) return false;
+        return user.password = password;
     }
+
+    //  Static helper to add a new user directly 
+    static addUser(name, email, password){
+        const users = User.allUsers();
+
+        // Optional:Prevent duplicate email
+        const existingUser = users.find(user => user.email === email)
+
+        if(existingUser){
+            throw new Error('User with the email already exists');
+        }
+        console.log('test')
+
+        const newUser = new User(name, email, password);
+        users.push(newUser);
+        User.saveAll(users);
+        return newUser;
+
+    }
+    
 }
+
 
 export default User;
